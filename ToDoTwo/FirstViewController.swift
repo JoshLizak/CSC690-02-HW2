@@ -12,12 +12,13 @@ class FirstViewController: UIViewController, UITableViewDataSource, UITableViewD
     
     @IBOutlet weak var ToDo_UITableView: UITableView!
     @IBAction func newTaskButton(_ sender: Any) {
-        newTaskDialog()
+        newTaskDialogue()
+        
     }
     
     let userDefaults = UserDefaults.standard
     var toDoList = [String]()
-
+    
     
     /* Load ToDo List Array from UserDefaults */
     func loadToDoList(){
@@ -59,7 +60,7 @@ class FirstViewController: UIViewController, UITableViewDataSource, UITableViewD
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == UITableViewCell.EditingStyle.delete{
-            self.moveTask(taskName: toDoList[indexPath.row])
+            //            self.moveTask(taskName: toDoList[indexPath.row])
             self.toDoList.remove(at: indexPath.row)
             ToDo_UITableView.reloadData()
             self.saveList()
@@ -67,22 +68,51 @@ class FirstViewController: UIViewController, UITableViewDataSource, UITableViewD
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        editTaskDialogue(originalTask: toDoList[indexPath.row], indexPath: indexPath)
+        taskSelectedDialogue(taskName: toDoList[indexPath.row], indexPath: indexPath )
         tableView.deselectRow(at: indexPath, animated: true)
         self.ToDo_UITableView.reloadData()
     }
     
+    /* Task Selected Dialogue */
+    func taskSelectedDialogue (taskName: String, indexPath: IndexPath  ){
+        let alertController = UIAlertController(title: taskName, message: "Change Task Name or Complete It.", preferredStyle: .actionSheet)
+        
+        let editAction = UIAlertAction(title: "Edit Task", style: .default) { (_) in
+            self.editTaskDialogue(originalTask: self.toDoList[indexPath.row], indexPath: indexPath)
+            self.ToDo_UITableView.reloadData()
+            self.saveList()
+        }
+        
+        let completeAction = UIAlertAction(title: "Complete Task", style: .default) { (_) in
+            self.moveTask(taskName: taskName)
+            self.toDoList.remove(at: indexPath.row)
+            self.ToDo_UITableView.reloadData()
+            self.saveList()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
+        
+        alertController.addAction(editAction)
+        alertController.addAction(completeAction)
+        alertController.addAction(cancelAction)
+        
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
     
     /* New Task Dialogue */
-    func newTaskDialog(){
+    func newTaskDialogue(){
         let alertController = UIAlertController(title: "New Task", message: "Enter name of new task", preferredStyle: .alert)
         
         let confirmAction = UIAlertAction(title: "Enter", style: .default) { (_) in
-            //getting the input values from user
             let newTask = (alertController.textFields?[0].text)
-            self.toDoList.append(newTask!)
-            self.ToDo_UITableView.reloadData()
-            self.saveList()
+            if newTask?.count == 0 {
+                self.newTaskDialogue()
+            } else {
+                self.toDoList.append(newTask!)
+                self.ToDo_UITableView.reloadData()
+                self.saveList()
+            }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
@@ -102,9 +132,13 @@ class FirstViewController: UIViewController, UITableViewDataSource, UITableViewD
         
         let confirmAction = UIAlertAction(title: "Enter", style: .default) { (_) in
             let newTask = (alertController.textFields?[0].text)
-            self.toDoList[indexPath.row] = newTask!
-            self.ToDo_UITableView.reloadData()
-            self.saveList()
+            if newTask?.count == 0 {
+                self.editTaskDialogue(originalTask: originalTask, indexPath: indexPath)
+            } else {
+                self.toDoList[indexPath.row] = newTask!
+                self.ToDo_UITableView.reloadData()
+                self.saveList()
+            }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
